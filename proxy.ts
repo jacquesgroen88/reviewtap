@@ -3,8 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // Protect /admin routes
+  // Protect /admin routes (but not the login page/API itself)
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
+    // Always allow the login page and login API through
+    if (pathname === '/admin/login' || pathname === '/api/admin/login') {
+      return NextResponse.next()
+    }
+
     const auth = req.cookies.get('admin_auth')?.value
     if (auth !== process.env.ADMIN_PASSWORD) {
       if (pathname.startsWith('/api/admin')) {

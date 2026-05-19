@@ -14,21 +14,51 @@ export default function LinksList({ card, isDark }: Props) {
 
   if (!links.length) return null
 
-  const bg    = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'
-  const text  = isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.8)'
-  const sep   = isDark ? 'rgba(84,84,88,0.4)' : 'rgba(60,60,67,0.12)'
+  const brand = card.brand_color
+
+  const containerStyle: React.CSSProperties = isDark ? {
+    background: 'rgba(255,255,255,0.05)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+    borderRadius: 16,
+    overflow: 'hidden',
+  } : {
+    background: 'rgba(255,255,255,0.72)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1px solid rgba(0,0,0,0.06)',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+    borderRadius: 16,
+    overflow: 'hidden',
+  }
+
+  const text = isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.80)'
+  const sep  = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'
 
   return (
-    <div className="w-full rounded-2xl overflow-hidden" style={{ background: bg }}>
+    <div className="w-full" style={containerStyle}>
       {links.map((l, i) => (
         <a key={i} href={l.url} target="_blank" rel="noopener noreferrer"
-          className="flex items-center justify-between px-4 py-4 transition-opacity active:opacity-60"
+          className="flex items-center justify-between transition-opacity active:opacity-60"
           style={{
+            padding: '14px 16px',
             borderBottom: i < links.length - 1 ? `1px solid ${sep}` : 'none',
-            color: l.star ? '#ffd60a' : text,
+            color: l.star ? '#f59e0b' : text,
+            gap: 12,
           }}>
-          <span className="text-[15px] font-medium">{l.label}</span>
-          <ExternalLink className="w-4 h-4 opacity-40 shrink-0 ml-3" />
+          {/* Left accent bar */}
+          <div style={{
+            width: 3,
+            height: 20,
+            borderRadius: 99,
+            background: l.star ? '#f59e0b' : brand,
+            flexShrink: 0,
+            opacity: 0.85,
+          }} />
+          <span style={{ fontSize: 15, fontWeight: 500, flex: 1 }}>{l.label}</span>
+          <ExternalLink className="w-4 h-4 shrink-0" style={{ opacity: 0.35 }} />
         </a>
       ))}
     </div>

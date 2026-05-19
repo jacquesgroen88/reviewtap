@@ -17,9 +17,9 @@ html { height: 100%; }
 
 body {
   min-height: 100%;
-  background: #000;
+  background: #090909;
   color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-jakarta), -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

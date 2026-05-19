@@ -7,30 +7,37 @@ import LinksList from './LinksList'
 import LeadCaptureSheet from './LeadCaptureSheet'
 import type { Card } from '@/lib/types'
 
-const QRBlock     = dynamic(() => import('./QRBlock'),     { ssr: false })
-const ShareButton = dynamic(() => import('./ShareButton'), { ssr: false })
+const QRBlock      = dynamic(() => import('./QRBlock'),      { ssr: false })
+const ShareButton  = dynamic(() => import('./ShareButton'),  { ssr: false })
 const WalletButton = dynamic(() => import('./WalletButton'), { ssr: false })
 
 type Props = { card: Card; preview?: boolean }
 
+/* ─── colour helpers ─── */
 function darkenHex(hex: string, amount = 0.35): string {
   const c = hex.replace('#', '')
-  const r = parseInt(c.slice(0, 2), 16)
-  const g = parseInt(c.slice(2, 4), 16)
-  const b = parseInt(c.slice(4, 6), 16)
-  const dr = Math.round(r * (1 - amount))
-  const dg = Math.round(g * (1 - amount))
-  const db = Math.round(b * (1 - amount))
-  return `#${dr.toString(16).padStart(2, '0')}${dg.toString(16).padStart(2, '0')}${db.toString(16).padStart(2, '0')}`
+  const r = Math.round(parseInt(c.slice(0, 2), 16) * (1 - amount))
+  const g = Math.round(parseInt(c.slice(2, 4), 16) * (1 - amount))
+  const b = Math.round(parseInt(c.slice(4, 6), 16) * (1 - amount))
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`
+}
+
+function lightenHex(hex: string, amount = 0.35): string {
+  const c = hex.replace('#', '')
+  const r = Math.round(parseInt(c.slice(0, 2), 16) + (255 - parseInt(c.slice(0, 2), 16)) * amount)
+  const g = Math.round(parseInt(c.slice(2, 4), 16) + (255 - parseInt(c.slice(2, 4), 16)) * amount)
+  const b = Math.round(parseInt(c.slice(4, 6), 16) + (255 - parseInt(c.slice(4, 6), 16)) * amount)
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`
 }
 
 export default function CardPage({ card, preview = false }: Props) {
   const isDark  = card.theme === 'dark'
   const layout  = card.layout ?? 'classic'
 
-  const bg      = isDark ? '#000000' : '#f2f2f7'
+  const bg      = isDark ? '#090909' : '#f5f5f7'
   const text    = isDark ? '#ffffff' : '#000000'
   const subtext = isDark ? 'rgba(235,235,245,0.60)' : 'rgba(60,60,67,0.60)'
+  const brand   = card.brand_color
 
   const cardUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/cards/${card.slug}`
@@ -49,35 +56,33 @@ export default function CardPage({ card, preview = false }: Props) {
 
       <LinksList card={card} isDark={isDark} />
 
-      {/* Lead capture */}
       {!preview && (
         <div className="mt-1">
           <LeadCaptureSheet
             cardSlug={card.slug}
             cardName={card.name}
-            accent={card.brand_color}
+            accent={brand}
             isDark={isDark}
           />
         </div>
       )}
 
-      {/* Google Wallet */}
-      {!preview && walletEnabled && (
-        <WalletButton slug={card.slug} />
-      )}
+      {!preview && walletEnabled && <WalletButton slug={card.slug} />}
 
-      {/* QR code */}
       {!preview && (
-        <div className="mt-4 flex flex-col items-center gap-1 py-4 rounded-2xl"
-          style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }}>
+        <div className="mt-4 flex flex-col items-center gap-1 py-5 rounded-2xl"
+          style={{
+            background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+            border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.05)',
+          }}>
           <p className="text-xs mb-2 font-medium" style={{ color: subtext }}>Scan to share this card</p>
-          <QRBlock url={cardUrl} isDark={isDark} accentColor={card.brand_color} />
+          <QRBlock url={cardUrl} isDark={isDark} accentColor={brand} />
         </div>
       )}
 
       <p className="text-center text-xs pb-2" style={{ color: isDark ? 'rgba(235,235,245,0.18)' : 'rgba(60,60,67,0.25)' }}>
         Powered by{' '}
-        <a href="https://reviewtap.co.za" style={{ color: card.brand_color }} className="font-medium">
+        <a href="https://reviewtap.co.za" style={{ color: brand }} className="font-medium">
           ReviewTap
         </a>
       </p>
@@ -86,12 +91,14 @@ export default function CardPage({ card, preview = false }: Props) {
 
   /* ═══════════════════════ CLASSIC LAYOUT ═══════════════════════ */
   if (layout === 'classic') {
-    const coverGradient = `linear-gradient(160deg, ${card.brand_color}70 0%, ${darkenHex(card.brand_color)}55 50%, ${isDark ? '#000' : '#e5e5ea'} 100%)`
+    const coverGradient = card.cover_url
+      ? undefined
+      : `radial-gradient(ellipse at 30% 40%, ${brand}95 0%, ${darkenHex(brand, 0.25)}80 45%, ${isDark ? '#090909' : '#e8e8ed'} 100%)`
 
     return (
       <div className="min-h-dvh w-full flex flex-col items-center pb-14 fade-up" style={{ background: bg, color: text }}>
         {/* Cover Banner */}
-        <div className="w-full relative" style={{ height: '200px' }}>
+        <div className="w-full relative" style={{ height: '240px' }}>
           {card.cover_url ? (
             <img src={card.cover_url} alt="Cover" draggable={false}
               className="w-full h-full object-cover"
@@ -99,121 +106,195 @@ export default function CardPage({ card, preview = false }: Props) {
           ) : (
             <div className="w-full h-full" style={{ background: coverGradient }} />
           )}
-          <div className="absolute bottom-0 left-0 right-0 h-16"
+          {/* Noise texture overlay */}
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+            opacity: 0.04,
+            mixBlendMode: 'overlay',
+          }} />
+          {/* Gradient fade to bg */}
+          <div className="absolute bottom-0 left-0 right-0 h-20"
             style={{ background: `linear-gradient(to bottom, transparent, ${bg})` }} />
         </div>
 
         {/* Avatar overlapping cover */}
-        <div className="flex flex-col items-center w-full max-w-sm px-5" style={{ marginTop: '-56px' }}>
+        <div className="flex flex-col items-center w-full max-w-sm px-5" style={{ marginTop: '-60px' }}>
           {card.photo_url ? (
-            <div className="w-28 h-28 rounded-full overflow-hidden shadow-xl"
-              style={{ border: `3px solid ${card.brand_color}`, boxShadow: `0 0 0 3px ${bg}, 0 4px 24px rgba(0,0,0,0.3)`, zIndex: 1 }}>
+            <div className="rounded-full overflow-hidden"
+              style={{
+                width: 128, height: 128,
+                border: `3px solid ${bg}`,
+                boxShadow: `0 0 0 3px ${brand}, 0 8px 32px ${brand}55, 0 2px 12px rgba(0,0,0,0.4)`,
+                zIndex: 1,
+              }}>
               <img src={card.photo_url} alt={card.name} draggable={false}
                 className="w-full h-full object-cover"
                 style={{ objectPosition: `${card.photo_x ?? 50}% ${card.photo_y ?? 50}%` }} />
             </div>
           ) : (
-            <div className="w-28 h-28 rounded-full shadow-xl flex items-center justify-center text-4xl font-bold text-white"
-              style={{ background: card.brand_color, boxShadow: `0 0 0 3px ${bg}, 0 4px 24px rgba(0,0,0,0.3)`, zIndex: 1 }}>
+            <div className="rounded-full flex items-center justify-center font-bold text-white"
+              style={{
+                width: 128, height: 128, fontSize: 44,
+                background: `linear-gradient(145deg, ${lightenHex(brand, 0.2)}, ${brand})`,
+                border: `3px solid ${bg}`,
+                boxShadow: `0 0 0 3px ${brand}, 0 8px 32px ${brand}55, 0 2px 12px rgba(0,0,0,0.4)`,
+                zIndex: 1,
+              }}>
               {card.name.charAt(0).toUpperCase()}
             </div>
           )}
-          <div className="text-center space-y-1 pt-4 pb-2 w-full">
-            <h1 className="text-[28px] font-bold tracking-tight leading-tight">{card.name}</h1>
-            {card.job_title && <p className="text-[17px] font-semibold" style={{ color: card.brand_color }}>{card.job_title}</p>}
-            {card.company  && <p className="text-[15px]" style={{ color: subtext }}>{card.company}</p>}
-            {card.bio      && <p className="text-[14px] leading-relaxed mt-2 max-w-xs mx-auto" style={{ color: subtext }}>{card.bio}</p>}
+
+          <div className="text-center space-y-1 pt-5 pb-2 w-full">
+            <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-0.5px', lineHeight: 1.15 }}>{card.name}</h1>
+            {card.job_title && (
+              <p style={{ fontSize: 17, fontWeight: 600, color: brand }}>{card.job_title}</p>
+            )}
+            {card.company && (
+              <p style={{ fontSize: 15, color: subtext }}>{card.company}</p>
+            )}
+            {card.bio && (
+              <p style={{ fontSize: 14, lineHeight: 1.6, color: subtext, marginTop: 10, maxWidth: 300, margin: '10px auto 0' }}>
+                {card.bio}
+              </p>
+            )}
           </div>
         </div>
 
         <div className="w-full flex flex-col items-center mt-2">{lowerSection}</div>
-        {!preview && <ShareButton name={card.name} url={cardUrl} accent={card.brand_color} />}
+        {!preview && <ShareButton name={card.name} url={cardUrl} accent={brand} />}
       </div>
     )
   }
 
   /* ═══════════════════════ MINIMAL LAYOUT ═══════════════════════ */
   if (layout === 'minimal') {
+    const minimalBg = isDark
+      ? `radial-gradient(ellipse at 50% 0%, ${brand}22 0%, #090909 55%)`
+      : `radial-gradient(ellipse at 50% -10%, ${brand}18 0%, #f5f5f7 55%)`
+
     return (
-      <div className="min-h-dvh w-full flex flex-col items-center pb-14 fade-up" style={{ background: bg, color: text }}>
+      <div className="min-h-dvh w-full flex flex-col items-center pb-14 fade-up" style={{ background: minimalBg, color: text }}>
         <div className="w-full max-w-sm px-5 flex flex-col items-center pt-16 pb-2">
           {/* Large avatar, no cover */}
           {card.photo_url ? (
-            <div className="w-36 h-36 rounded-full overflow-hidden shadow-xl mb-5"
-              style={{ border: `4px solid ${card.brand_color}`, boxShadow: `0 8px 32px ${card.brand_color}30` }}>
+            <div className="rounded-full overflow-hidden mb-6"
+              style={{
+                width: 160, height: 160,
+                boxShadow: `0 0 0 4px ${isDark ? '#090909' : '#ffffff'}, 0 0 0 6px ${brand}70, 0 16px 48px ${brand}30`,
+              }}>
               <img src={card.photo_url} alt={card.name} draggable={false}
                 className="w-full h-full object-cover"
                 style={{ objectPosition: `${card.photo_x ?? 50}% ${card.photo_y ?? 50}%` }} />
             </div>
           ) : (
-            <div className="w-36 h-36 rounded-full shadow-xl flex items-center justify-center text-5xl font-bold text-white mb-5"
-              style={{ background: card.brand_color, boxShadow: `0 8px 32px ${card.brand_color}30` }}>
+            <div className="rounded-full flex items-center justify-center font-bold text-white mb-6"
+              style={{
+                width: 160, height: 160, fontSize: 56,
+                background: `linear-gradient(145deg, ${lightenHex(brand, 0.2)}, ${brand})`,
+                boxShadow: `0 0 0 4px ${isDark ? '#090909' : '#ffffff'}, 0 0 0 6px ${brand}70, 0 16px 48px ${brand}30`,
+              }}>
               {card.name.charAt(0).toUpperCase()}
             </div>
           )}
 
-          <div className="text-center space-y-1 pb-2 w-full">
-            <h1 className="text-[30px] font-bold tracking-tight leading-tight">{card.name}</h1>
-            {card.job_title && <p className="text-[17px] font-semibold mt-1" style={{ color: card.brand_color }}>{card.job_title}</p>}
-            {card.company  && <p className="text-[15px] mt-0.5" style={{ color: subtext }}>{card.company}</p>}
-            {card.bio      && <p className="text-[14px] leading-relaxed mt-3 max-w-xs mx-auto" style={{ color: subtext }}>{card.bio}</p>}
+          <div className="text-center w-full">
+            <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.5px', lineHeight: 1.15 }}>{card.name}</h1>
+            {card.job_title && (
+              <p style={{ fontSize: 17, fontWeight: 600, color: brand, marginTop: 6 }}>{card.job_title}</p>
+            )}
+            {card.company && (
+              <p style={{ fontSize: 15, color: subtext, marginTop: 3 }}>{card.company}</p>
+            )}
+            {card.bio && (
+              <p style={{ fontSize: 14, lineHeight: 1.65, color: subtext, marginTop: 14, maxWidth: 300, margin: '14px auto 0' }}>
+                {card.bio}
+              </p>
+            )}
           </div>
 
-          {/* Thin accent divider */}
-          <div className="w-12 h-0.5 rounded-full mt-5 mb-2" style={{ background: card.brand_color }} />
+          {/* Gradient accent pill divider */}
+          <div style={{
+            width: 48, height: 3, borderRadius: 99,
+            background: `linear-gradient(90deg, ${brand}, ${lightenHex(brand, 0.3)})`,
+            marginTop: 24, marginBottom: 8,
+          }} />
         </div>
 
         <div className="w-full flex flex-col items-center">{lowerSection}</div>
-        {!preview && <ShareButton name={card.name} url={cardUrl} accent={card.brand_color} />}
+        {!preview && <ShareButton name={card.name} url={cardUrl} accent={brand} />}
       </div>
     )
   }
 
   /* ═══════════════════════ BOLD LAYOUT ═══════════════════════ */
-  // layout === 'bold'
-  const boldTextColor = '#ffffff'
   return (
-    <div className="min-h-dvh w-full flex flex-col items-center pb-14 fade-up" style={{ background: bg, color: text }}>
-      {/* Bold color header block */}
-      <div className="w-full relative flex flex-col items-center justify-end pb-8"
-        style={{ background: card.brand_color, minHeight: '260px' }}>
-        {/* Subtle texture overlay */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, rgba(255,255,255,0.12) 0%, rgba(0,0,0,0.18) 100%)' }} />
-        <div className="relative z-10 flex flex-col items-center gap-4 px-5 pt-12">
-          {/* Avatar inside colour block */}
+    <div className="min-h-dvh w-full flex flex-col items-center pb-14 fade-up" style={{ background: isDark ? '#090909' : '#f5f5f7', color: text }}>
+      {/* Bold gradient header block */}
+      <div className="w-full relative flex flex-col items-center justify-end pb-10"
+        style={{
+          background: `linear-gradient(135deg, ${lightenHex(brand, 0.22)} 0%, ${brand} 50%, ${darkenHex(brand, 0.22)} 100%)`,
+          minHeight: '270px',
+          borderRadius: '0 0 40px 40px',
+        }}>
+        {/* Radial highlight — top */}
+        <div className="absolute inset-0 rounded-b-[40px]" style={{
+          background: 'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.28) 0%, transparent 65%)',
+          pointerEvents: 'none',
+        }} />
+        {/* Noise texture */}
+        <div className="absolute inset-0 rounded-b-[40px]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          opacity: 0.05,
+          mixBlendMode: 'overlay',
+        }} />
+
+        <div className="relative z-10 flex flex-col items-center gap-4 px-5 pt-14">
           {card.photo_url ? (
-            <div className="w-28 h-28 rounded-full overflow-hidden"
-              style={{ border: '3px solid rgba(255,255,255,0.9)', boxShadow: '0 4px 24px rgba(0,0,0,0.25)' }}>
+            <div className="rounded-full overflow-hidden"
+              style={{
+                width: 132, height: 132,
+                border: '3px solid rgba(255,255,255,0.85)',
+                boxShadow: '0 4px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.20)',
+              }}>
               <img src={card.photo_url} alt={card.name} draggable={false}
                 className="w-full h-full object-cover"
                 style={{ objectPosition: `${card.photo_x ?? 50}% ${card.photo_y ?? 50}%` }} />
             </div>
           ) : (
-            <div className="w-28 h-28 rounded-full flex items-center justify-center text-4xl font-bold"
-              style={{ background: 'rgba(255,255,255,0.25)', border: '3px solid rgba(255,255,255,0.9)', boxShadow: '0 4px 24px rgba(0,0,0,0.25)', color: boldTextColor }}>
+            <div className="rounded-full flex items-center justify-center font-bold"
+              style={{
+                width: 132, height: 132, fontSize: 46,
+                background: 'rgba(255,255,255,0.20)',
+                border: '3px solid rgba(255,255,255,0.85)',
+                boxShadow: '0 4px 32px rgba(0,0,0,0.35)',
+                color: '#ffffff',
+              }}>
               {card.name.charAt(0).toUpperCase()}
             </div>
           )}
+
           <div className="text-center">
-            <h1 className="text-[26px] font-bold tracking-tight leading-tight" style={{ color: boldTextColor }}>{card.name}</h1>
-            {card.job_title && <p className="text-[15px] font-medium mt-0.5" style={{ color: 'rgba(255,255,255,0.80)' }}>{card.job_title}</p>}
-            {card.company  && <p className="text-[14px] mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>{card.company}</p>}
+            <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.3px', lineHeight: 1.2, color: '#ffffff' }}>
+              {card.name}
+            </h1>
+            {card.job_title && (
+              <p style={{ fontSize: 15, fontWeight: 500, color: 'rgba(255,255,255,0.82)', marginTop: 4 }}>{card.job_title}</p>
+            )}
+            {card.company && (
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.62)', marginTop: 3 }}>{card.company}</p>
+            )}
           </div>
         </div>
-        {/* Smooth transition to bg */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 rounded-t-none"
-          style={{ background: bg, borderRadius: '24px 24px 0 0', marginTop: '-1px' }} />
       </div>
 
-      {/* Bio (if any) below the color block */}
       {card.bio && (
-        <div className="w-full max-w-sm px-5 pt-4 pb-1 text-center">
-          <p className="text-[14px] leading-relaxed" style={{ color: subtext }}>{card.bio}</p>
+        <div className="w-full max-w-sm px-5 pt-5 pb-1 text-center">
+          <p style={{ fontSize: 14, lineHeight: 1.65, color: subtext }}>{card.bio}</p>
         </div>
       )}
 
-      <div className="w-full flex flex-col items-center mt-3">{lowerSection}</div>
-      {!preview && <ShareButton name={card.name} url={cardUrl} accent={card.brand_color} />}
+      <div className="w-full flex flex-col items-center mt-4">{lowerSection}</div>
+      {!preview && <ShareButton name={card.name} url={cardUrl} accent={brand} />}
     </div>
   )
 }

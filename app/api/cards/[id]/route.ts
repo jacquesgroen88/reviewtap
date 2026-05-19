@@ -54,6 +54,7 @@ export async function PATCH(
         custom_links:       body.custom_links        ?? [],
         theme:              body.theme               ?? 'dark',
         brand_color:        body.brand_color         ?? '#0a84ff',
+        layout:             body.layout              ?? 'classic',
         updated_at:         new Date().toISOString(),
       })
       .eq('id', id)

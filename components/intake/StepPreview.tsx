@@ -13,6 +13,7 @@ export default function StepPreview({ data }: Props) {
     id: 'preview',
     is_active: true,
     edit_token: null,
+    layout: data.layout ?? 'classic',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }

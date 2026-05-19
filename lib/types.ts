@@ -30,6 +30,7 @@ export type Card = {
   custom_links: CustomLink[]
   theme: 'light' | 'dark'
   brand_color: string
+  layout: 'classic' | 'minimal' | 'bold'
   is_active: boolean
   order_ref: string | null
   edit_token: string | null
@@ -42,4 +43,5 @@ export type CardFormData = Omit<Card, 'id' | 'created_at' | 'updated_at' | 'is_a
   photo_y: number
   cover_x: number
   cover_y: number
+  layout: 'classic' | 'minimal' | 'bold'
 }

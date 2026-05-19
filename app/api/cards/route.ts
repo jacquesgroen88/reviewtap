@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       custom_links:       body.custom_links  ?? [],
       theme:              body.theme         ?? 'dark',
       brand_color:        body.brand_color   ?? '#0a84ff',
+      layout:             body.layout        ?? 'classic',
       order_ref:          body.order_ref     || null,
     }).select('slug, edit_token').single()
 

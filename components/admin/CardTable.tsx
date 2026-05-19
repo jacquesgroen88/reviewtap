@@ -6,9 +6,10 @@ import type { Card } from '@/lib/types'
 
 type Props = {
   cards: Card[]
+  leadCounts?: Record<string, number>
 }
 
-export default function CardTable({ cards: initial }: Props) {
+export default function CardTable({ cards: initial, leadCounts = {} }: Props) {
   const [cards, setCards] = useState(initial)
   const [copied, setCopied] = useState<string | null>(null)
   const [copiedEdit, setCopiedEdit] = useState<string | null>(null)
@@ -62,7 +63,16 @@ export default function CardTable({ cards: initial }: Props) {
               <td className="py-3 pr-4 text-white/30">{i + 1}</td>
               <td className="py-3 pr-4">
                 <div>
-                  <p className="font-medium text-white">{card.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-white">{card.name}</p>
+                    {(leadCounts[card.id] ?? 0) > 0 && (
+                      <a href="/admin/leads"
+                        className="px-1.5 py-0.5 rounded-full text-xs font-bold"
+                        style={{ background: 'rgba(10,132,255,0.20)', color: '#0a84ff' }}>
+                        {leadCounts[card.id]} lead{leadCounts[card.id] !== 1 ? 's' : ''}
+                      </a>
+                    )}
+                  </div>
                   <p className="text-xs text-white/40">/cards/{card.slug}</p>
                 </div>
               </td>

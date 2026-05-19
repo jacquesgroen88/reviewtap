@@ -28,7 +28,8 @@ const DEFAULT_DATA: CardFormData = {
   phone: null, email: null, whatsapp: null,
   website: null, google_review_url: null,
   social_links: [], custom_links: [],
-  theme: 'dark', brand_color: '#0a84ff', order_ref: null,
+  theme: 'dark', brand_color: '#0a84ff',
+  layout: 'classic', order_ref: null,
 }
 
 type Props = {

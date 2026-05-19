@@ -12,44 +12,41 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
     }
 
-    // Find a unique slug
-    let slug = body.slug || generateUniqueSlug(body.name)
+    // Find unique slug
+    let slug = body.slug?.trim() || generateUniqueSlug(body.name)
     let attempt = 0
     while (true) {
       const { data: existing } = await supabase
-        .from('cards')
-        .select('id')
-        .eq('slug', slug)
-        .maybeSingle()
+        .from('cards').select('id').eq('slug', slug).maybeSingle()
       if (!existing) break
-      attempt++
-      slug = generateUniqueSlug(body.name, attempt)
+      slug = generateUniqueSlug(body.name, ++attempt)
     }
 
-    const { data, error } = await supabase
-      .from('cards')
-      .insert({
-        slug,
-        name: body.name.trim(),
-        job_title: body.job_title || null,
-        company: body.company || null,
-        bio: body.bio || null,
-        photo_url: body.photo_url || null,
-        phone: body.phone || null,
-        email: body.email || null,
-        whatsapp: body.whatsapp || null,
-        website: body.website || null,
-        google_review_url: body.google_review_url || null,
-        social_links: body.social_links ?? [],
-        custom_links: body.custom_links ?? [],
-        theme: body.theme ?? 'dark',
-        brand_color: body.brand_color ?? '#2563eb',
-        order_ref: body.order_ref || null,
-      })
-      .select('slug')
-      .single()
+    const { data, error } = await supabase.from('cards').insert({
+      slug,
+      name:               body.name.trim(),
+      job_title:          body.job_title  || null,
+      company:            body.company    || null,
+      bio:                body.bio        || null,
+      photo_url:          body.photo_url  || null,
+      photo_x:            body.photo_x    ?? 50,
+      photo_y:            body.photo_y    ?? 50,
+      phone:              body.phone      || null,
+      email:              body.email      || null,
+      whatsapp:           body.whatsapp   || null,
+      website:            body.website    || null,
+      google_review_url:  body.google_review_url || null,
+      social_links:       body.social_links  ?? [],
+      custom_links:       body.custom_links  ?? [],
+      theme:              body.theme         ?? 'dark',
+      brand_color:        body.brand_color   ?? '#0a84ff',
+      order_ref:          body.order_ref     || null,
+    }).select('slug').single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Supabase insert error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
     return NextResponse.json({ slug: data.slug })
   } catch (e: unknown) {
     console.error('Card creation error:', e)

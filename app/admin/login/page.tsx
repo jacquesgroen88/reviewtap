@@ -44,7 +44,12 @@ export default function AdminLogin() {
             value={password}
             onChange={e => setPassword(e.target.value)}
             placeholder="Enter password"
-            className="input-field w-full"
+            style={{
+              width: '100%', padding: '14px 16px',
+              background: 'rgba(120,120,128,0.18)',
+              border: '1.5px solid rgba(255,255,255,0.08)',
+              borderRadius: '12px', color: '#fff', fontSize: '15px', outline: 'none',
+            }}
             autoFocus
           />
           {error && <p className="text-sm text-red-400">{error}</p>}

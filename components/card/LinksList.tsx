@@ -1,42 +1,34 @@
 'use client'
 
-import { ExternalLink, Star } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import type { Card } from '@/lib/types'
 
-type Props = {
-  card: Card
-  isDark: boolean
-}
+type Props = { card: Card; isDark: boolean }
 
 export default function LinksList({ card, isDark }: Props) {
-  const allLinks = [
-    card.website && { label: 'Visit Website', url: card.website, isWebsite: true },
-    card.google_review_url && { label: '⭐ Leave a Google Review', url: card.google_review_url, isReview: true },
-    ...card.custom_links.filter(l => l.label && l.url),
-  ].filter(Boolean) as { label: string; url: string; isWebsite?: boolean; isReview?: boolean }[]
+  const links = [
+    card.website            && { label: 'Website',                 url: card.website,            star: false },
+    card.google_review_url  && { label: '⭐ Leave a Google Review', url: card.google_review_url,  star: true  },
+    ...card.custom_links.filter(l => l.label && l.url).map(l => ({ label: l.label, url: l.url, star: false })),
+  ].filter(Boolean) as { label: string; url: string; star: boolean }[]
 
-  if (allLinks.length === 0) return null
+  if (!links.length) return null
+
+  const bg    = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'
+  const text  = isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.8)'
+  const sep   = isDark ? 'rgba(84,84,88,0.4)' : 'rgba(60,60,67,0.12)'
 
   return (
-    <div className="w-full space-y-2.5">
-      {allLinks.map((link, i) => (
-        <a
-          key={i}
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-between w-full px-5 py-3.5 rounded-full border font-medium text-sm transition-all active:scale-95 hover:opacity-80"
+    <div className="w-full rounded-2xl overflow-hidden" style={{ background: bg }}>
+      {links.map((l, i) => (
+        <a key={i} href={l.url} target="_blank" rel="noopener noreferrer"
+          className="flex items-center justify-between px-4 py-4 transition-opacity active:opacity-60"
           style={{
-            borderColor: link.isReview
-              ? '#facc15'
-              : isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
-            color: link.isReview
-              ? isDark ? '#fef08a' : '#a16207'
-              : isDark ? '#fff' : '#111',
-          }}
-        >
-          <span>{link.label}</span>
-          <ExternalLink className="w-4 h-4 opacity-50 flex-shrink-0" />
+            borderBottom: i < links.length - 1 ? `1px solid ${sep}` : 'none',
+            color: l.star ? '#ffd60a' : text,
+          }}>
+          <span className="text-[15px] font-medium">{l.label}</span>
+          <ExternalLink className="w-4 h-4 opacity-40 shrink-0 ml-3" />
         </a>
       ))}
     </div>

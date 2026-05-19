@@ -16,6 +16,8 @@ export type Card = {
   company: string | null
   bio: string | null
   photo_url: string | null
+  photo_x: number | null
+  photo_y: number | null
   phone: string | null
   email: string | null
   whatsapp: string | null
@@ -31,4 +33,7 @@ export type Card = {
   updated_at: string
 }
 
-export type CardFormData = Omit<Card, 'id' | 'created_at' | 'updated_at' | 'is_active'>
+export type CardFormData = Omit<Card, 'id' | 'created_at' | 'updated_at' | 'is_active'> & {
+  photo_x: number
+  photo_y: number
+}

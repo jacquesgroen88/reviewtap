@@ -8,99 +8,91 @@ import type { Card } from '@/lib/types'
 
 const QRBlock = dynamic(() => import('./QRBlock'), { ssr: false })
 
-type Props = {
-  card: Card
-  preview?: boolean
-}
+type Props = { card: Card; preview?: boolean }
 
 export default function CardPage({ card, preview = false }: Props) {
   const isDark = card.theme === 'dark'
-  const bg = isDark ? '#0f0f0f' : '#f5f5f5'
-  const textPrimary = isDark ? '#ffffff' : '#111111'
-  const textMuted = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)'
-  const divider = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
+
+  const bg        = isDark ? '#000000' : '#f2f2f7'
+  const cardBg    = isDark ? '#1c1c1e' : '#ffffff'
+  const text      = isDark ? '#ffffff' : '#000000'
+  const subtext   = isDark ? 'rgba(235,235,245,0.60)' : 'rgba(60,60,67,0.60)'
+  const sep       = isDark ? 'rgba(84,84,88,0.55)' : 'rgba(60,60,67,0.12)'
 
   const cardUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/cards/${card.slug}`
     : `/cards/${card.slug}`
 
   return (
-    <div
-      className="min-h-dvh w-full flex flex-col items-center pb-12"
-      style={{ backgroundColor: bg, color: textPrimary }}
-    >
-      {/* Top accent bar */}
-      <div className="w-full h-1" style={{ backgroundColor: card.brand_color }} />
+    <div className="min-h-dvh w-full flex flex-col items-center pb-14 fade-up"
+      style={{ background: bg, color: text }}>
 
-      <div className="w-full max-w-sm px-5 flex flex-col items-center gap-6 pt-10">
-        {/* Profile photo */}
+      {/* Hero area */}
+      <div className="w-full max-w-sm px-5 pt-14 flex flex-col items-center gap-4">
+
+        {/* Avatar */}
         {card.photo_url ? (
-          <div
-            className="w-24 h-24 rounded-full overflow-hidden border-4"
-            style={{ borderColor: card.brand_color }}
-          >
-            <img src={card.photo_url} alt={card.name} className="w-full h-full object-cover" />
+          <div className="w-28 h-28 rounded-full overflow-hidden shadow-lg"
+            style={{ border: `3px solid ${card.brand_color}` }}>
+            <img src={card.photo_url} alt={card.name} draggable={false}
+              className="w-full h-full object-cover"
+              style={{ objectPosition: `${card.photo_x ?? 50}% ${card.photo_y ?? 50}%` }} />
           </div>
         ) : (
-          <div
-            className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold text-white"
-            style={{ backgroundColor: card.brand_color }}
-          >
+          <div className="w-28 h-28 rounded-full shadow-lg flex items-center justify-center text-4xl font-bold text-white"
+            style={{ background: card.brand_color }}>
             {card.name.charAt(0).toUpperCase()}
           </div>
         )}
 
-        {/* Identity */}
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">{card.name}</h1>
+        {/* Name + title */}
+        <div className="text-center space-y-1 pb-2">
+          <h1 className="text-[28px] font-bold tracking-tight leading-tight">{card.name}</h1>
           {card.job_title && (
-            <p className="text-sm font-medium" style={{ color: card.brand_color }}>
+            <p className="text-[17px] font-semibold" style={{ color: card.brand_color }}>
               {card.job_title}
             </p>
           )}
           {card.company && (
-            <p className="text-sm" style={{ color: textMuted }}>
-              {card.company}
-            </p>
+            <p className="text-[15px]" style={{ color: subtext }}>{card.company}</p>
           )}
           {card.bio && (
-            <p className="text-sm mt-2 leading-relaxed" style={{ color: textMuted }}>
+            <p className="text-[14px] leading-relaxed mt-2 max-w-xs mx-auto" style={{ color: subtext }}>
               {card.bio}
             </p>
           )}
         </div>
+      </div>
 
-        {/* Divider */}
-        <div className="w-full h-px" style={{ backgroundColor: divider }} />
+      {/* Card body */}
+      <div className="w-full max-w-sm px-5 flex flex-col gap-3 mt-2">
 
-        {/* Contact buttons + save contact */}
+        {/* Contact action buttons */}
         <ContactButtons card={card} isDark={isDark} />
 
-        {/* Social links */}
-        <SocialRow card={card} isDark={isDark} />
+        {/* Social icons */}
+        {card.social_links.some(s => s.url) && (
+          <div className="py-1">
+            <SocialRow card={card} isDark={isDark} />
+          </div>
+        )}
 
         {/* Links */}
         <LinksList card={card} isDark={isDark} />
 
         {/* QR code */}
         {!preview && (
-          <>
-            <div className="w-full h-px" style={{ backgroundColor: divider }} />
-            <div className="flex flex-col items-center gap-1">
-              <p className="text-xs mb-1" style={{ color: textMuted }}>Scan to share</p>
-              <QRBlock url={cardUrl} isDark={isDark} accentColor={card.brand_color} />
-            </div>
-          </>
+          <div className="mt-4 flex flex-col items-center gap-1 py-4 rounded-2xl"
+            style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }}>
+            <p className="text-xs mb-2 font-medium" style={{ color: subtext }}>Scan to share this card</p>
+            <QRBlock url={cardUrl} isDark={isDark} accentColor={card.brand_color} />
+          </div>
         )}
 
-        {/* Footer */}
-        <p className="text-xs mt-4" style={{ color: textMuted }}>
+        {/* Branding */}
+        <p className="text-center text-xs pb-2" style={{ color: isDark ? 'rgba(235,235,245,0.18)' : 'rgba(60,60,67,0.25)' }}>
           Powered by{' '}
-          <a
-            href="https://reviewtap.co.za"
-            className="underline hover:opacity-80"
-            style={{ color: card.brand_color }}
-          >
+          <a href="https://reviewtap.co.za" style={{ color: card.brand_color }} className="font-medium">
             ReviewTap
           </a>
         </p>

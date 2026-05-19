@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight, Loader2, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, Sparkles, Check } from 'lucide-react'
 import StepPersonal from './StepPersonal'
+import StepCover from './StepCover'
 import StepContact from './StepContact'
 import StepLinks from './StepLinks'
 import StepDesign from './StepDesign'
@@ -13,6 +14,7 @@ import { generateSlug } from '@/lib/slug'
 
 const STEPS = [
   { title: 'About You',   subtitle: 'Name & personal details' },
+  { title: 'Cover Photo', subtitle: 'Optional banner image' },
   { title: 'Contact',     subtitle: 'How people reach you' },
   { title: 'Links',       subtitle: 'Website & social profiles' },
   { title: 'Design',      subtitle: 'Style your card' },
@@ -22,18 +24,33 @@ const STEPS = [
 const DEFAULT_DATA: CardFormData = {
   slug: '', name: '', job_title: null, company: null, bio: null,
   photo_url: null, photo_x: 50, photo_y: 50,
+  cover_url: null, cover_x: 50, cover_y: 50,
   phone: null, email: null, whatsapp: null,
   website: null, google_review_url: null,
   social_links: [], custom_links: [],
   theme: 'dark', brand_color: '#0a84ff', order_ref: null,
 }
 
-export default function IntakeForm({ orderRef }: { orderRef?: string }) {
+type Props = {
+  orderRef?: string
+  // Edit mode
+  editMode?: boolean
+  initialData?: Partial<CardFormData>
+  cardId?: string
+  editToken?: string
+}
+
+export default function IntakeForm({ orderRef, editMode, initialData, cardId, editToken }: Props) {
   const router = useRouter()
   const [step, setStep] = useState(0)
-  const [data, setData] = useState<CardFormData>({ ...DEFAULT_DATA, order_ref: orderRef ?? null })
+  const [data, setData] = useState<CardFormData>({
+    ...DEFAULT_DATA,
+    order_ref: orderRef ?? null,
+    ...(initialData ?? {}),
+  })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
 
   function update(patch: Partial<CardFormData>) { setData(prev => ({ ...prev, ...patch })) }
 
@@ -51,15 +68,29 @@ export default function IntakeForm({ orderRef }: { orderRef?: string }) {
     setSubmitting(true)
     setError(null)
     try {
-      const payload = { ...data, slug: data.slug || generateSlug(data.name) }
-      const res = await fetch('/api/cards', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error ?? 'Failed to create card')
-      router.push(`/cards/${json.slug}?new=1`)
+      if (editMode && cardId) {
+        // PATCH existing card
+        const res = await fetch(`/api/cards/${cardId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...data, edit_token: editToken }),
+        })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error ?? 'Failed to update card')
+        setSuccess(true)
+        setTimeout(() => router.push(`/cards/${json.slug}`), 1800)
+      } else {
+        // POST new card
+        const payload = { ...data, slug: data.slug || generateSlug(data.name) }
+        const res = await fetch('/api/cards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error ?? 'Failed to create card')
+        router.push(`/cards/${json.slug}?new=1`)
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Something went wrong')
       setSubmitting(false)
@@ -68,6 +99,24 @@ export default function IntakeForm({ orderRef }: { orderRef?: string }) {
 
   const isLast = step === STEPS.length - 1
   const accent = data.brand_color
+
+  if (success) {
+    return (
+      <div className="min-h-dvh flex flex-col items-center justify-center px-5 gap-6"
+        style={{ background: '#000' }}>
+        <div className="w-16 h-16 rounded-full flex items-center justify-center"
+          style={{ background: `${accent}20`, border: `2px solid ${accent}` }}>
+          <Check className="w-8 h-8" style={{ color: accent }} />
+        </div>
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold text-white">Card Updated!</h1>
+          <p className="text-sm" style={{ color: 'rgba(235,235,245,0.50)' }}>
+            Redirecting you to your card…
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-dvh flex flex-col" style={{ background: 'var(--bg)' }}>
@@ -79,7 +128,7 @@ export default function IntakeForm({ orderRef }: { orderRef?: string }) {
         <div className="flex items-end justify-between">
           <div>
             <p className="text-xs font-semibold tracking-widest uppercase mb-0.5" style={{ color: accent, opacity: 0.85 }}>
-              Step {step + 1} of {STEPS.length}
+              {editMode ? 'Editing' : 'Step'} {step + 1} of {STEPS.length}
             </p>
             <h1 className="text-2xl font-bold tracking-tight">{STEPS[step].title}</h1>
             <p className="text-sm mt-0.5" style={{ color: 'var(--label3)' }}>{STEPS[step].subtitle}</p>
@@ -99,10 +148,11 @@ export default function IntakeForm({ orderRef }: { orderRef?: string }) {
       <div className="flex-1 overflow-y-auto px-5 pt-6 pb-10">
         <div key={step} className="step-enter">
           {step === 0 && <StepPersonal data={data} onChange={update} />}
-          {step === 1 && <StepContact data={data} onChange={update} />}
-          {step === 2 && <StepLinks data={data} onChange={update} />}
-          {step === 3 && <StepDesign data={data} onChange={update} />}
-          {step === 4 && <StepPreview data={data} />}
+          {step === 1 && <StepCover    data={data} onChange={update} />}
+          {step === 2 && <StepContact  data={data} onChange={update} />}
+          {step === 3 && <StepLinks    data={data} onChange={update} />}
+          {step === 4 && <StepDesign   data={data} onChange={update} />}
+          {step === 5 && <StepPreview  data={data} />}
         </div>
       </div>
 
@@ -141,9 +191,11 @@ export default function IntakeForm({ orderRef }: { orderRef?: string }) {
             }}
           >
             {submitting ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Creating your card…</>
+              <><Loader2 className="w-4 h-4 animate-spin" /> {editMode ? 'Saving changes…' : 'Creating your card…'}</>
             ) : isLast ? (
-              <><Sparkles className="w-4 h-4" /> Create My Card</>
+              editMode
+                ? <><Check className="w-4 h-4" /> Save Changes</>
+                : <><Sparkles className="w-4 h-4" /> Create My Card</>
             ) : (
               <>Continue <ChevronRight className="w-4 h-4" /></>
             )}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ExternalLink, Edit2, Copy, ToggleLeft, ToggleRight, Trash2, Check } from 'lucide-react'
+import { ExternalLink, Edit2, Copy, ToggleLeft, ToggleRight, Trash2, Check, Link2 } from 'lucide-react'
 import type { Card } from '@/lib/types'
 
 type Props = {
@@ -11,12 +11,21 @@ type Props = {
 export default function CardTable({ cards: initial }: Props) {
   const [cards, setCards] = useState(initial)
   const [copied, setCopied] = useState<string | null>(null)
+  const [copiedEdit, setCopiedEdit] = useState<string | null>(null)
 
   async function copy(slug: string) {
     const url = `${window.location.origin}/cards/${slug}`
     await navigator.clipboard.writeText(url)
     setCopied(slug)
     setTimeout(() => setCopied(null), 2000)
+  }
+
+  async function copyEditLink(id: string, editToken: string | null) {
+    if (!editToken) return
+    const url = `${window.location.origin}/edit/${editToken}`
+    await navigator.clipboard.writeText(url)
+    setCopiedEdit(id)
+    setTimeout(() => setCopiedEdit(null), 2000)
   }
 
   async function toggleActive(id: string, current: boolean) {
@@ -91,6 +100,13 @@ export default function CardTable({ cards: initial }: Props) {
                     title="Copy link"
                   >
                     {copied === card.slug ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                  <button
+                    onClick={() => copyEditLink(card.id, card.edit_token)}
+                    className="p-2 text-white/40 hover:text-blue-400 transition-colors rounded-lg hover:bg-white/5"
+                    title="Copy client edit link"
+                  >
+                    {copiedEdit === card.id ? <Check className="w-4 h-4 text-green-400" /> : <Link2 className="w-4 h-4" />}
                   </button>
                   <a
                     href={`/admin/edit/${card.id}`}

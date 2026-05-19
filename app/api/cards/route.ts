@@ -31,6 +31,9 @@ export async function POST(req: NextRequest) {
       photo_url:          body.photo_url  || null,
       photo_x:            body.photo_x    ?? 50,
       photo_y:            body.photo_y    ?? 50,
+      cover_url:          body.cover_url  || null,
+      cover_x:            body.cover_x    ?? 50,
+      cover_y:            body.cover_y    ?? 50,
       phone:              body.phone      || null,
       email:              body.email      || null,
       whatsapp:           body.whatsapp   || null,
@@ -41,13 +44,13 @@ export async function POST(req: NextRequest) {
       theme:              body.theme         ?? 'dark',
       brand_color:        body.brand_color   ?? '#0a84ff',
       order_ref:          body.order_ref     || null,
-    }).select('slug').single()
+    }).select('slug, edit_token').single()
 
     if (error) {
       console.error('Supabase insert error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
-    return NextResponse.json({ slug: data.slug })
+    return NextResponse.json({ slug: data.slug, edit_token: data.edit_token })
   } catch (e: unknown) {
     console.error('Card creation error:', e)
     return NextResponse.json(

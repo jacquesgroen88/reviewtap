@@ -1,6 +1,10 @@
 'use client'
 
-import { Globe, Camera, Users, Briefcase, Video, Music2, Star, Plus, Trash2 } from 'lucide-react'
+import { Globe, Star, Plus, Trash2 } from 'lucide-react'
+import {
+  InstagramIcon, FacebookIcon, LinkedInIcon,
+  YouTubeIcon, TikTokIcon, TwitterXIcon, PinterestIcon,
+} from '@/components/social/BrandIcons'
 import type { CardFormData, CustomLink } from '@/lib/types'
 
 type Props = {
@@ -9,11 +13,13 @@ type Props = {
 }
 
 const SOCIALS = [
-  { key: 'instagram', label: 'Instagram', icon: <Camera className="w-4 h-4" />, placeholder: 'https://instagram.com/yourhandle' },
-  { key: 'facebook',  label: 'Facebook',  icon: <Users className="w-4 h-4" />,   placeholder: 'https://facebook.com/yourpage' },
-  { key: 'linkedin',  label: 'LinkedIn',  icon: <Briefcase className="w-4 h-4" />, placeholder: 'https://linkedin.com/in/yourprofile' },
-  { key: 'youtube',   label: 'YouTube',   icon: <Video className="w-4 h-4" />,    placeholder: 'https://youtube.com/@yourchannel' },
-  { key: 'tiktok',    label: 'TikTok',    icon: <Music2 className="w-4 h-4" />,   placeholder: 'https://tiktok.com/@yourhandle' },
+  { key: 'instagram', label: 'Instagram', icon: <InstagramIcon size={16} />, placeholder: 'https://instagram.com/yourhandle' },
+  { key: 'facebook',  label: 'Facebook',  icon: <FacebookIcon size={16} />,  placeholder: 'https://facebook.com/yourpage' },
+  { key: 'linkedin',  label: 'LinkedIn',  icon: <LinkedInIcon size={16} />,  placeholder: 'https://linkedin.com/in/yourprofile' },
+  { key: 'youtube',   label: 'YouTube',   icon: <YouTubeIcon size={16} />,   placeholder: 'https://youtube.com/@yourchannel' },
+  { key: 'tiktok',    label: 'TikTok',    icon: <TikTokIcon size={16} />,    placeholder: 'https://tiktok.com/@yourhandle' },
+  { key: 'twitter',   label: 'X / Twitter', icon: <TwitterXIcon size={16} />, placeholder: 'https://x.com/yourhandle' },
+  { key: 'pinterest', label: 'Pinterest', icon: <PinterestIcon size={16} />, placeholder: 'https://pinterest.com/yourprofile' },
 ]
 
 const inputStyle: React.CSSProperties = {
@@ -77,8 +83,8 @@ export default function StepLinks({ data, onChange }: Props) {
         <div style={groupStyle}>
           {SOCIALS.map((s, i) => (
             <div key={s.key} style={i < SOCIALS.length - 1 ? rowStyle : rowLastStyle}>
-              <span style={{ color: 'rgba(235,235,245,0.30)' }}>{s.icon}</span>
-              <span style={{ width: '72px', fontSize: '14px', fontWeight: 500, flexShrink: 0, color: 'rgba(235,235,245,0.60)' }}>{s.label}</span>
+              <span style={{ color: 'rgba(235,235,245,0.45)', flexShrink: 0 }}>{s.icon}</span>
+              <span style={{ width: '82px', fontSize: '13px', fontWeight: 500, flexShrink: 0, color: 'rgba(235,235,245,0.60)' }}>{s.label}</span>
               <input type="url" value={getSocial(s.key)} onChange={e => setSocial(s.key, e.target.value)}
                 placeholder={s.placeholder} style={inlineInputStyle} />
             </div>
@@ -103,12 +109,10 @@ export default function StepLinks({ data, onChange }: Props) {
             </div>
           </div>
         ))}
-        {data.custom_links.length < 5 && (
-          <button type="button" onClick={addCustomLink}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 500, color: '#0a84ff', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <Plus className="w-4 h-4" /> Add Link
-          </button>
-        )}
+        <button type="button" onClick={addCustomLink}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 500, color: '#0a84ff', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <Plus className="w-4 h-4" /> Add Link
+        </button>
       </div>
     </div>
   )

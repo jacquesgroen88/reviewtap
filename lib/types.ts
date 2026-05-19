@@ -18,6 +18,9 @@ export type Card = {
   photo_url: string | null
   photo_x: number | null
   photo_y: number | null
+  cover_url: string | null
+  cover_x: number | null
+  cover_y: number | null
   phone: string | null
   email: string | null
   whatsapp: string | null
@@ -29,11 +32,14 @@ export type Card = {
   brand_color: string
   is_active: boolean
   order_ref: string | null
+  edit_token: string | null
   created_at: string
   updated_at: string
 }
 
-export type CardFormData = Omit<Card, 'id' | 'created_at' | 'updated_at' | 'is_active'> & {
+export type CardFormData = Omit<Card, 'id' | 'created_at' | 'updated_at' | 'is_active' | 'edit_token'> & {
   photo_x: number
   photo_y: number
+  cover_x: number
+  cover_y: number
 }

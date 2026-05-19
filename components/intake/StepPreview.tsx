@@ -12,6 +12,7 @@ export default function StepPreview({ data }: Props) {
     ...data,
     id: 'preview',
     is_active: true,
+    edit_token: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }

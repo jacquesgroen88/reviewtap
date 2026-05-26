@@ -5,15 +5,16 @@ import type { Card, CardFormData } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
-type Props = { params: { token: string } }
+type Props = { params: Promise<{ token: string }> }
 
 export default async function EditCardPage({ params }: Props) {
+  const { token } = await params
   const supabase = createServerClient()
 
   const { data, error } = await supabase
     .from('cards')
     .select('*')
-    .eq('edit_token', params.token)
+    .eq('edit_token', token)
     .single()
 
   if (error || !data) {

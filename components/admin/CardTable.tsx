@@ -119,9 +119,9 @@ export default function CardTable({ cards: initial, leadCounts = {} }: Props) {
                     {copiedEdit === card.id ? <Check className="w-4 h-4 text-green-400" /> : <Link2 className="w-4 h-4" />}
                   </button>
                   <a
-                    href={`/admin/edit/${card.id}`}
+                    href={card.edit_token ? `/edit/${card.edit_token}` : '#'}
                     className="p-2 text-white/40 hover:text-white transition-colors rounded-lg hover:bg-white/5"
-                    title="Edit"
+                    title="Edit card"
                   >
                     <Edit2 className="w-4 h-4" />
                   </a>

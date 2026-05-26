@@ -53,7 +53,7 @@ export default async function EditCardPage({ params }: Props) {
       editMode
       initialData={initialData}
       cardId={card.id}
-      editToken={params.token}
+      editToken={token}
     />
   )
 }

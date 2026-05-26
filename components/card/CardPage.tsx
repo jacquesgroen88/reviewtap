@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic'
 import ContactButtons from './ContactButtons'
 import SocialRow from './SocialRow'
 import LinksList from './LinksList'
-import LeadCaptureSheet from './LeadCaptureSheet'
 import type { Card } from '@/lib/types'
 
 const QRBlock      = dynamic(() => import('./QRBlock'),      { ssr: false })
@@ -56,18 +55,7 @@ export default function CardPage({ card, preview = false }: Props) {
 
       <LinksList card={card} isDark={isDark} />
 
-      {!preview && (
-        <div className="mt-1">
-          <LeadCaptureSheet
-            cardSlug={card.slug}
-            cardName={card.name}
-            accent={brand}
-            isDark={isDark}
-          />
-        </div>
-      )}
-
-      {!preview && walletEnabled && <WalletButton slug={card.slug} />}
+{!preview && walletEnabled && <WalletButton slug={card.slug} />}
 
       {!preview && (
         <div className="mt-4 flex flex-col items-center gap-1 py-5 rounded-2xl"
